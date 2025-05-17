@@ -16,6 +16,8 @@ model User {
   updatedAt DateTime           @updatedAt
 
   ParkingSlot ParkingSlot[]
+
+  ParkingRequest ParkingRequest[]
 }
 enum Role {
   ADMIN // The application admin
@@ -33,5 +35,24 @@ model ParkingSlot {
   updatedAt DateTime @updatedAt
   userId    String?  // if assigned
   user      User?    @relation(fields: [userId], references: [id])
+
+  ParkingRequest ParkingRequest[]
 }
+
+model ParkingRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  slotId    String
+  slot      ParkingSlot @relation(fields: [slotId], references: [id])
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime @default(now())
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 

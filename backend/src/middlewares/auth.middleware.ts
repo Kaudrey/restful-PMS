@@ -7,7 +7,7 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: {
     id: string; // Changed from number to string
     role: string;
@@ -32,6 +32,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     req.user = { id: user.id, role: user.role };
+
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });

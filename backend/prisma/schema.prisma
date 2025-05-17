@@ -14,9 +14,24 @@ model User {
   role     Role                @default(USER)
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
+
+  ParkingSlot ParkingSlot[]
 }
 enum Role {
   ADMIN // The application admin
   USER  // This is a regular user
   @@map("roles")
 }
+
+model ParkingSlot {
+  id        String   @id @default(uuid())
+  slotNumber String @unique
+  location   String? // Optional field for detailed info like "Near Exit Gate"
+
+  inUse     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String?  // if assigned
+  user      User?    @relation(fields: [userId], references: [id])
+}
+

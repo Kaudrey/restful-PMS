@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import { seedAdmin } from './scripts/seedAdmin';
 
 
 
@@ -35,9 +36,11 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // === Server Startup ===
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
   console.log(`🚀 Server is live on http://localhost:${PORT}`);
   console.log(`📚 Swagger UI is at http://localhost:${PORT}/api-docs`);
+
+  await seedAdmin()
 });
 
 // === Graceful Shutdown ===

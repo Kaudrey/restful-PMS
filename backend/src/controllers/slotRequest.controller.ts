@@ -78,4 +78,65 @@ export const getAllRequests = async (req: AuthRequest, res: Response, next: Next
   }
 };
 
+export const approveRequest = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const requestId = req.params.id;
+
+    const request = await prisma.parkingRequest.findUnique({
+      where: { id: requestId },
+      include: { slot: true },
+    });
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    if (request.status !== 'PENDING') {
+      return res.status(400).json({ message: "Request is not pending" });
+    }
+
+    await prisma.parkingRequest.update({
+      where: { id: requestId },
+      data: { status: 'APPROVED' },
+    });
+
+    await prisma.parkingSlot.update({
+      where: { id: request.slotId },
+      data: { inUse: true },
+    });
+
+    res.status(200).json({ message: "Request approved and slot marked as in use" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const rejectRequest = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const requestId = req.params.id;
+
+    const request = await prisma.parkingRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    if (request.status !== 'PENDING') {
+      return res.status(400).json({ message: "Request is not pending" });
+    }
+
+    await prisma.parkingRequest.update({
+      where: { id: requestId },
+      data: { status: 'REJECTED' },
+    });
+
+    res.status(200).json({ message: "Request rejected" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 

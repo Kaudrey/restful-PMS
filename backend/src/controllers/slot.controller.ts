@@ -40,6 +40,7 @@ export const getParkingSlots = async (req: Request, res: Response, next:NextFunc
             page,
             pageSize,
             totalPages: Math.ceil(total / pageSize),
+            total,
         });
 
     } catch (err) {
@@ -111,3 +112,34 @@ export const deleteSlot = async (req: Request, res: Response, next: NextFunction
         
     }
 }
+
+export const getOccupiedSlots = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = 10;
+
+    // Find all slots where inUse is true, with pagination
+    const slots = await prisma.parkingSlot.findMany({
+      where: { inUse: true },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { id: 'asc' },
+    });
+
+    // Count total occupied slots
+    const total = await prisma.parkingSlot.count({
+      where: { inUse: true },
+    });
+
+    res.status(200).json({
+      data: slots,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+      total,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

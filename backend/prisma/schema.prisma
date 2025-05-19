@@ -1,58 +1,64 @@
-
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id       String              @id @default(uuid())
-  name     String?             @default("N/A")
-  email    String              @unique
-  password String
-  role     Role                @default(USER)
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  id        String        @id @default(uuid())
+  name      String?       @default("N/A")
+  email     String        @unique
+  password  String
+  role      Role          @default(USER)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  ParkingSlot ParkingSlot[]
-
-  ParkingRequest ParkingRequest[]
+  ParkingSlot     ParkingSlot[]
+  ParkingRequest  ParkingRequest[]
 }
+
 enum Role {
-  ADMIN // The application admin
-  USER  // This is a regular user
-  @@map("roles")
+  ADMIN
+  USER
 }
 
 model ParkingSlot {
-  id        String   @id @default(uuid())
-  slotNumber String @unique
-  location   String? // Optional field for detailed info like "Near Exit Gate"
-
-  inUse     Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String?  // if assigned
-  user      User?    @relation(fields: [userId], references: [id])
+  id         String         @id @default(uuid())
+  slotNumber String         @unique
+  location   String?        // Optional info like "Near Exit Gate"
+  inUse      Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  userId     String?        // Optional: assigned user, can be null
+  user       User?          @relation(fields: [userId], references: [id])
 
   ParkingRequest ParkingRequest[]
 }
 
 model ParkingRequest {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  slotId    String
-  slot      ParkingSlot @relation(fields: [slotId], references: [id])
-  status    RequestStatus @default(PENDING)
-  createdAt DateTime @default(now())
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  slotId      String
+  slot        ParkingSlot    @relation(fields: [slotId], references: [id])
+  status      RequestStatus  @default(PENDING)
+  startTime   DateTime?
+  endTime     DateTime?
+  totalTime   Int?           // in minutes
+  totalCharge Float?         
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([userId, slotId, status])
+  @@index([status])
 }
 
 enum RequestStatus {
   PENDING
   APPROVED
   REJECTED
+  COMPLETED
 }
-
-

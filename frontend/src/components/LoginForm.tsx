@@ -15,13 +15,23 @@ const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
       const response = await api.post('/auth/login', { email, password });
       const token = response.data.token;
 
       if (token) {
         login(token);
-        navigate('/dashboard');
+        const decoded: { role: string } = JSON.parse(atob(token.split('.')[1]));
+
+        // 👇 Route based on user role
+        if (decoded.role === 'ADMIN') {
+          navigate('/dashboard');
+        } else if (decoded.role === 'USER') {
+          navigate('/dashboard-user');
+        } else {
+          setError('Unknown user role.');
+        }
       } else {
         setError('No token received');
       }

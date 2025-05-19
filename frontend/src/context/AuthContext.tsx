@@ -1,8 +1,14 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
+// 👤 User type includes email and role now
+type User = {
+  email: string;
+  role: "ADMIN" | "USER";
+  name: string;
+};
 
-type User = { email: string };
 interface AuthContextType {
   user: User | null;
   login: (token: string) => void;
@@ -16,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem("token");
     return token ? jwtDecode<User>(token) : null;
   });
+  const navigate = useNavigate();
 
   const login = (token: string) => {
     localStorage.setItem("token", token);
@@ -25,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
+    navigate("/login");
   };
 
   return (

@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response,NextFunction } from 'express';
 import prisma from '../config/db';
 import { hashPassword, comparePasswords } from '../utils/hash';
 import { Role } from '@prisma/client';
 import { generateToken } from '../utils/token';
 import { z } from 'zod';
+import {AuthRequest} from '../middlewares/auth.middleware';
 // Register schema only
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name is required' }),
@@ -50,12 +51,21 @@ export const login = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     const match = await comparePasswords(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password' });
-    const token = generateToken(user.id.toString());
-    if (!token) return res.status(500).json({ message: 'Token generation failed' });
-    return res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    const token = generateToken({
+      id: user.id,
+      role: user.role,
+      email: user.email
+    });
+
+    return res.status(200).json({
+      message: 'Login successful',
+      token
+    });
+
   } catch (err) {
-    return res.status(500).json({ message: 'Login failed' });
-  } finally {
-    console.log('Login attempt:', JSON.stringify(req.body, null, 2));
+    console.error('💥 Login error:', err);
+    // Make sure this is the ONLY response sent in error case
+    return res.status(500).json({ message: 'Internal server error' });
   }
-}
+};
+

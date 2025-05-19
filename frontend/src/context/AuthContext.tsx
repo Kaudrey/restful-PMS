@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, ReactNode } from "react";
 import {jwtDecode} from "jwt-decode";
 
 
-type User = { email: string ,role:string};
+type User = { email: string };
 interface AuthContextType {
   user: User | null;
   login: (token: string) => void;

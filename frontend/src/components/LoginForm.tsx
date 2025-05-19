@@ -1,104 +1,95 @@
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router'; // if you're using expo-router
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api'; // adjust path if needed
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import api from '../services/api';
 
 const LoginForm = () => {
   const { login } = useAuth();
-  const router = useRouter(); // for redirecting after login
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
-      setLoading(true);
       const response = await api.post('/auth/login', { email, password });
       const token = response.data.token;
 
       if (token) {
-        login(token); // updates context + stores token
-        router.replace('/(tabs)'); // or whatever route you want to go after login
+        login(token);
+        navigate('/dashboard');
       } else {
-        Alert.alert('Login failed', 'No token received');
+        setError('No token received');
       }
     } catch (err: any) {
       console.error(err);
-      Alert.alert('Login failed', err.response?.data?.message || 'Something went wrong');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <div className="max-w-md w-full mx-auto p-8 bg-white rounded-xl shadow-md space-y-6">
+      <h1 className="text-2xl font-bold text-center text-gray-800">Welcome back</h1>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Password</label>
+          <input
+            type="password"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
-      </TouchableOpacity>
-    </View>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {loading ? 'Signing in...' : 'Sign in'}
+        </button>
+      </form>
+
+      {error && (
+        <div className="text-red-500 text-sm text-center py-2">
+          {error}
+        </div>
+      )}
+
+      <div className="text-sm text-center text-gray-600 pt-2">
+        Don't have an account?{' '}
+        <Link 
+          to="/signup" 
+          className="font-medium text-blue-600 hover:text-blue-500"
+        >
+          Sign up
+        </Link>
+      </div>
+    </div>
   );
 };
 
 export default LoginForm;
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    marginBottom: 24,
-    textAlign: 'center',
-    fontWeight: 'bold',
-    color: 'skyblue',
-  },
-  input: {
-    height: 50,
-    borderColor: 'skyblue',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    color: '#000',
-  },
-  button: {
-    backgroundColor: 'skyblue',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});

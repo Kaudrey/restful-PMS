@@ -1,15 +1,14 @@
-// components/ProtectedAdminRoute.tsx
-import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { ReactNode, FC } from "react";
+import { useAuth } from "../context/AuthContext";
 
-const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+interface Props {
+  children: ReactNode;
+}
+
+const ProtectedAdminRoute: FC<Props> = ({ children }) => {
   const { user } = useAuth();
-
-  if (!user || user.role !== "ADMIN") {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
+  return user ? <>{children}</> : <Navigate to="/login" />;
 };
 
 export default ProtectedAdminRoute;
